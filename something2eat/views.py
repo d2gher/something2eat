@@ -2,8 +2,12 @@ from django.shortcuts import render, HttpResponseRedirect, HttpResponse
 from django.contrib.auth import login, logout, authenticate
 from django.db import IntegrityError
 from django.urls import reverse
+from django.core.cache import cache
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
 
-from .models import User
+from .models import User, Ingredient
 
 # Create your views here.
 
@@ -57,3 +61,45 @@ def register_view(request):
         return HttpResponseRedirect(reverse("index"))      
 
     return render(request, 'register.html')
+
+@csrf_exempt
+def ingredients_view(request):
+    if not request.user.is_authenticated:
+        return
+
+    user = User.objects.get(username=request.user.username)
+
+    if request.method == "POST":
+        try:
+            print("user id=%s" % user.id)
+            ingredient_name = json.loads(request.body).get('ingredient').strip()
+
+            # If name is empty
+            if not ingredient_name:
+                return JsonResponse({"error": "Ingredient name can't be empty"}, status=404)
+
+            try:
+                ingredient = Ingredient.objects.get(user=user, ingredient=ingredient_name)
+                return JsonResponse({"error": "Item already added to your fridge"}, status=404)
+            except:
+                ingredient = Ingredient(user=user, ingredient=ingredient_name)
+                ingredient.save()
+                cache.delete("ingredient-%s" % user.id)    
+                return JsonResponse({"Success": "Item saved"}, status=200)
+
+        except IntegrityError as e: 
+           return JsonResponse({"error": e.__cause__}, status=404)
+
+    if request.method == "GET":
+        ingredients = cache.get("ingredient-%s" % user.id)
+
+        if ingredients is None:
+            try:
+                ingredients = Ingredient.objects.filter(user=user)
+                cache.set("ingredient-%s" % user.id, ingredients)
+                return JsonResponse([ingredient.serialize() for ingredient in ingredients], safe=False)
+            except IntegrityError as e: 
+                return JsonResponse({"error": e.__cause__}, status=404)
+                
+        return JsonResponse([ingredient.serialize() for ingredient in ingredients], safe=False)        
+

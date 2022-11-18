@@ -1,12 +1,23 @@
 {% extends "something2eat/layout.html" %}
-
 {% block body %}
     {% if user.is_authenticated %}
-        <button class="btn btn-sm btn-outline-primary" id="inbox">Inbox</button>
-        <button class="btn btn-sm btn-outline-primary" id="compose">Compose</button>
-        <button class="btn btn-sm btn-outline-primary" id="sent">Sent</button>
-        <button class="btn btn-sm btn-outline-primary" id="archived">Archived</button>
-        <a class="btn btn-sm btn-outline-primary" href="{% url 'logout' %}">Logout</a>
+    <h2 class="text-center">Something to Eat</h2>
+        <nav class="text-center">
+            <button class="btn btn-sm btn-outline-primary" id="recommendations">Recommended recipes</button>
+            <button class="btn btn-sm btn-outline-primary" id="fridge">My fridge</button>
+            <a class="btn btn-sm btn-outline-primary" href="{% url 'logout' %}">Logout</a>
+        </nav>
+        <hr>
+        <div id="recommendations-view">nein</div>
+        <div id="fridge-view">
+            <form id="fridge-add-form">
+                <div class="form-group">
+                    <input required autofocus class="form-control" type="text" name="ingredient" placeholder="Ingredient" id="ingredient-name">
+                </div>
+                <input class="btn btn-primary" type="submit" value="Add">
+            </form>
+            <ul class="list-group list-group-flush" id="ingredients-list"></ul>
+        </div>
     {% else %}
         <a class="btn btn-sm btn-outline-primary" href="{% url 'login' %}">Login</a>
         or
