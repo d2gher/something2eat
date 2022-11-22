@@ -1,11 +1,14 @@
-from django.shortcuts import render, HttpResponseRedirect, HttpResponse
+from django.shortcuts import render, HttpResponseRedirect
 from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from django.urls import reverse
 from django.core.cache import cache
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+import requests
 import json
+import os
 
 from .models import User, Ingredient
 
@@ -62,16 +65,16 @@ def register_view(request):
 
     return render(request, 'register.html')
 
+@login_required
 @csrf_exempt
 def ingredients_view(request):
-    if not request.user.is_authenticated:
+    try:
+        user = User.objects.get(username=request.user.username)
+    except:
         return
-
-    user = User.objects.get(username=request.user.username)
 
     if request.method == "POST":
         try:
-            print("user id=%s" % user.id)
             ingredient_name = json.loads(request.body).get('ingredient').strip()
 
             # If name is empty
@@ -84,22 +87,77 @@ def ingredients_view(request):
             except:
                 ingredient = Ingredient(user=user, ingredient=ingredient_name)
                 ingredient.save()
-                cache.delete("ingredient-%s" % user.id)    
+                cache.delete("ingredients-%s" % user.id)    
+                cache.delete("recipies-%s" % user.id)    
                 return JsonResponse({"Success": "Item saved"}, status=200)
 
         except IntegrityError as e: 
            return JsonResponse({"error": e.__cause__}, status=404)
 
     if request.method == "GET":
-        ingredients = cache.get("ingredient-%s" % user.id)
+        ingredients = cache.get("ingredients-%s" % user.id)
 
         if ingredients is None:
             try:
                 ingredients = Ingredient.objects.filter(user=user)
-                cache.set("ingredient-%s" % user.id, ingredients)
+                cache.set("ingredients-%s" % user.id, ingredients)
                 return JsonResponse([ingredient.serialize() for ingredient in ingredients], safe=False)
             except IntegrityError as e: 
                 return JsonResponse({"error": e.__cause__}, status=404)
                 
         return JsonResponse([ingredient.serialize() for ingredient in ingredients], safe=False)        
 
+    if request.method == "DELETE":
+        ingredient_id = json.loads(request.body).get("id")
+        try:
+            Ingredient.objects.filter(id=ingredient_id).delete()
+            cache.delete("ingredients-%s" % user.id)  
+            cache.delete("recipies-%s" % user.id)  
+            return JsonResponse({"Success": "Ingredient was removed."}, status=200)
+        except:
+            return JsonResponse({"Error": "Couldn't find ingredient"}, status=404)        
+
+@login_required
+def recipies_view(request):
+    
+    try:
+        user = User.objects.get(username=request.user.username)
+    except:
+        return JsonResponse({"error": "couldn't find user"}, status=404) 
+
+    recipies = cache.get("recipies-%s" % user.id)
+
+    if recipies is None: 
+        try:
+            ingredients = cache.get("ingredients-%s" % user.id)
+
+            if ingredients is None:
+                try:
+                    ingredients = Ingredient.objects.filter(user=user)
+                    cache.set("ingredients-%s" % user.id, ingredients)
+                except IntegrityError as e: 
+                    return JsonResponse({"error": e.__cause__}, status=404)
+                    
+            ingredients = JsonResponse([ingredient.serialize() for ingredient in ingredients], safe=False)
+            list = []
+            
+            for ingredient in ingredients:
+                ingredient = json.loads(ingredient)
+                for item in ingredient:
+                    list.append(item.get("ingredient"))
+
+            if not list:
+                return JsonResponse({"error": "empty ingredients"}, status=404)  
+            list.sort()
+
+            CSV_ingredients = ""
+            for item in list:
+                CSV_ingredients += f'{item},'
+
+            recipies = requests.get(f'https://api.spoonacular.com/recipes/findByIngredients?ingredients={CSV_ingredients}&ranking=2&apiKey={os.environ["API_KEY"]}&ignorePantry=true')    
+            recipies = recipies.json()
+            cache.set("recipies-%s" % user.id, recipies)
+        except:
+            return JsonResponse({"error": "couldn't reach the API"}, status=404)    
+    
+    return JsonResponse(recipies, safe=False)  

@@ -10,13 +10,15 @@
         <hr>
         <div id="recommendations-view">nein</div>
         <div id="fridge-view">
-            <form id="fridge-add-form">
+            <form id="fridge-add-form" class="text-center">
                 <div class="form-group">
-                    <input required autofocus class="form-control" type="text" name="ingredient" placeholder="Ingredient" id="ingredient-name">
+                    <input required autofocus class="form-control col-4" type="text" name="ingredient" placeholder="Ingredient" id="ingredient-name">
                 </div>
-                <input class="btn btn-primary" type="submit" value="Add">
+                <div class="form-group">
+                    <input class="btn btn-primary" type="submit" value="Add">
+                </div>
             </form>
-            <ul class="list-group list-group-flush" id="ingredients-list"></ul>
+            <ul class="list-group" id="ingredients-list"></ul>
         </div>
     {% else %}
         <a class="btn btn-sm btn-outline-primary" href="{% url 'login' %}">Login</a>

@@ -10,5 +10,6 @@ class Ingredient(models.Model):
 
     def serialize(self):
         return {
-            "ingredient": self.ingredient,            
+            "ingredient": self.ingredient, 
+            "id": self.id           
         }
