@@ -101,11 +101,12 @@ def ingredients_view(request):
             try:
                 ingredients = Ingredient.objects.filter(user=user)
                 cache.set("ingredients-%s" % user.id, ingredients)
-                return JsonResponse([ingredient.serialize() for ingredient in ingredients], safe=False)
             except IntegrityError as e: 
                 return JsonResponse({"error": e.__cause__}, status=404)
-                
-        return JsonResponse([ingredient.serialize() for ingredient in ingredients], safe=False)        
+        try:        
+            return JsonResponse([ingredient.serialize() for ingredient in ingredients], safe=False)        
+        except:
+            return JsonResponse({"Error": "No recipies found."}, status=404)
 
     if request.method == "DELETE":
         ingredient_id = json.loads(request.body).get("id")
@@ -161,3 +162,18 @@ def recipies_view(request):
             return JsonResponse({"error": "couldn't reach the API"}, status=404)    
     
     return JsonResponse(recipies, safe=False)  
+
+@login_required
+def recipie_view(request, id):
+    recipie = cache.get("recipie-%s" % id)
+
+    if recipie is None: 
+        try: 
+            print(f'https://api.spoonacular.com/recipes/{id}/information&apiKey={os.environ["API_KEY"]}')
+            recipie = requests.get(f'https://api.spoonacular.com/recipes/{id}/information?apiKey={os.environ["API_KEY"]}')
+            recipie = recipie.json()  
+            cache.set("recipie-%s" % id, recipie) 
+        except:
+            return JsonResponse({"error": "couldn't find recipe"}, status=404) 
+         
+    return JsonResponse(recipie, safe=False)

@@ -4,8 +4,8 @@ const recommendations_button = document.querySelector("#recommendations")
 if (fridge_button) {
     fridge_button.addEventListener('click', () => load_tap('#fridge-view'));
     recommendations_button.addEventListener('click', () => load_tap('#recommendations-view'));
+    recommendations_button.addEventListener('click', () => load_tap('#recommendations-view'));
     load_ingredients()
-    load_recipies()
     
     const form = document.querySelector("#fridge-add-form")
     form.addEventListener("submit", function(event) {
@@ -34,56 +34,71 @@ if (fridge_button) {
 function load_tap(tap) {
     if (tap == "#recommendations-view") {
         document.querySelector("#fridge-view").style.display = "none";
+        document.querySelector("#recipe-view").style.display = "none";
         document.querySelector(tap).style.display = "flex";
     } else {
         document.querySelector("#recommendations-view").style.display = "none";
+        document.querySelector("#recipe-view").style.display = "none";
         document.querySelector(tap).style.display = "block";
     }
 }
 
 function load_ingredients() {
     const list = document.querySelector("#ingredients-list")
-    list.innerHTML = ""
+
     fetch("/ingredients")
     .then(res => res.json())
     .then(ingredients => {
+        if (ingredients.length == 0) throw "No ingredients found"
+        list.innerHTML = ""
         ingredients.forEach(ingredient => {
-            
             const element = document.createElement("div");
-            // element.className = "list-group-item"
+            
             element.innerHTML = `
             <li class="list-group-item d-flex justify-content-between align-items-center">${capitalize(ingredient.ingredient)}
             <button id="ingredient-${ingredient.id}" class="btn btn-danger">Remove</button></li> 
             `
             list.append(element);
             document.querySelector(`#ingredient-${ingredient.id}`).addEventListener('click', () => removeIngredient(ingredient.id))
-            load_recipies()
         });
-    })
+        load_recipes()
+    }).catch(err => console.log(err))
 }
 
-function load_recipies() {
+function load_recipes() {
     const recipie_block = document.querySelector("#recommendations-view")
     recipie_block.innerHTML = ""
 
-    fetch("/recipies")
+    fetch("/recipes")
     .then(res => res.json())
-    .then(recipies => {
-        console.log(recipies)
-        recipies.forEach(recipie => {
+    .then(recipes => {
+        if (recipes == undefined) throw "No recipes found"
+        console.log(recipes)
+        recipes.forEach(recipie => {
             const element = document.createElement("div");
+            let used_ingredients = ""
+            recipie.usedIngredients.forEach(item => {
+                used_ingredients += `<li class="card-text">${capitalize(item.name)}</li>`
+            })
             element.className = "card";
             element.style.width = "18rem"
             element.innerHTML = `
-            <img class="card-img-top" src="${recipie.image}" alt="Card image cap">
-            <div class="card-body">
-                <h5 class="card-title">${recipie.title}</h5>
-                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                <a href="recpies/${recipie.id}" class="btn btn-primary">More details</a>
+            <div class="recipie">
+                <img class="card-img-top" src="${recipie.image}" alt="Card image cap">
+                <div class="card-body">
+                    <h5 class="card-title">${recipie.title}</h5>
+                    <hr>
+                    <h6 class="card-subtitle mb-2 text-muted">Used ingredients</h6>
+                    <ul>${used_ingredients}</ul>
+                    Likes: <span class="badge badge-primary badge-pill">${recipie.likes}</span>
+                </div>
             </div>`;
             recipie_block.append(element);
+            element.addEventListener("click", () => {
+                load_recipie(recipie.id)
+            } )
         });
-    })
+    }).catch(err => console.log(err))
 }
 
 function capitalize(str) {
@@ -100,14 +115,33 @@ function removeIngredient(id) {
         })
     })
     .then(res => res.json())
-    .then(recipies => {
+    .then(recipes => {
         const item = document.querySelector(`#ingredient-${id}`)
         item.style.animationPlayState = "running"
         item.parentElement.style.animationPlayState = "running"
         item.parentElement.addEventListener("animationend", ()=> {
             item.parentElement.remove()
-            load_recipies()
+            load_recipes()
         })
     })
     .catch(err => console.log(err))
+}
+
+function load_recipie(id) {
+    let element = document.querySelector("#recipe-view")
+    element.innerHTML = ""
+    load_tap('#recipe-view')
+    fetch(`/recipes/${id}`)
+    .then(res => res.json())
+    .then(recipe => {
+        element.innerHTML = `
+        <div class="recipe d-flex justify-content-center">
+            <img class="recipe-image" src="${recipe.image}">
+            <div class="vl"></div>
+            <div class="recipe-title"><h2>${recipe.title}</h2></div>
+        </div>
+        `
+
+    })
+    .catch(err => console.log(res))
 }

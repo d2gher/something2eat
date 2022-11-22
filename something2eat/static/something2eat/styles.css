@@ -7,6 +7,10 @@
     flex-wrap: wrap;
 }
 
+#recipie-view {
+    display: none;
+}
+
 .card {
     margin: 5px;
 }
@@ -43,4 +47,28 @@
     line-height: 0px;
     padding: 0rem 1.25rem;
    }
+}
+
+.recipie:hover {
+    cursor: pointer;
+    scale: 1.01;
+    box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.052);
+}
+
+.recipe-image {
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+    transition: 0.3s;
+    width: 40%;
+    object-fit: contain;
+}
+
+.vl {
+    border-left: 6px solid rgb(206, 206, 206);
+    height: 100%;
+    margin: 1px 10px;
+}
+
+.recipe-title {
+    display: flex;
+    align-items: center;
 }
