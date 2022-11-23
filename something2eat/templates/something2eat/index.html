@@ -2,6 +2,7 @@
 {% block body %}
     {% if user.is_authenticated %}
     <h2 class="text-center">Something to Eat</h2>
+    <h6 class="text-center">Find easy and simple meals with ingredients you already have</h6>
         <nav class="text-center">
             <button class="btn btn-sm btn-outline-primary" id="recommendations">Recommended recipes</button>
             <button class="btn btn-sm btn-outline-primary" id="fridge">My fridge</button>
@@ -24,10 +25,58 @@
                 <div class="alert alert-primary col-md-5"><strong>Info!</strong> Add some stuff you have in your fridge.</div> 
             </ul>
         </div>
-        <div id="recipe-view" class="d-flex justify-content-center"></div>
+        <div id="recipe-view">
+            <div id="recipe-container" class="d-flex row justify-content-center"></div>
+        </div>
+        <hr style="margin: 30px 0px ; visibility:hidden">
     {% else %}
-        <a class="btn btn-sm btn-outline-primary" href="{% url 'login' %}">Login</a>
-        or
-        <a class="btn btn-sm btn-outline-primary" href="{% url 'register' %}">Register</a>
+        <h2 class="text-center">Something to Eat</h2>
+        <h6 class="text-center">Find easy and simple meals with ingredients you already have</h6>
+        <hr>
+        <div class="d-flex justify-content-center align-items-center">
+            <!-- <a class="btn btn-sm btn-outline-primary" href="{% url 'login' %}">Login</a> -->
+            {% if message %}
+                <div>{{ message }}</div>
+            {% endif %}    
+            <div id="login-view">
+                <div class="form-container text-center ">
+                    <form action="{% url 'login' %}" method="post">
+                    {% csrf_token %}
+                        <div class="form-group">
+                            <input autofocus class="form-control" type="text" name="username" placeholder="Username">
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" type="password" name="password" placeholder="Password">
+                        </div>
+                        <input class="btn btn-primary" type="submit" value="Login">
+                    </form>
+                    Don't have an account? <button id="register-button" class="btn btn-link">Resgister here.</button>
+                </div>
+                <!-- Don't have an account? <a id="register-button" >Resgister here.</a> -->
+            </div>
+            <!-- <a class="btn btn-sm btn-outline-primary" href="{% url 'register' %}">Register</a> -->
+            <div id="register-view">
+                <div class="form-container text-center">
+                    <form action="{% url 'register' %}" method="post">
+                    {% csrf_token %}
+                        <div class="form-group">
+                            <input class="form-control" autofocus type="text" name="username" placeholder="Username">
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" type="email" name="email" placeholder="Email Address">
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" type="password" name="password" placeholder="Password">
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" type="password" name="confirmation" placeholder="Password Confirmation">
+                        </div>
+                        <input class="btn btn-primary" type="submit" value="Register">
+                    </form>
+                    Already have an account? <button id="login-button" class="btn btn-link">Log In here.</button>
+                </div>
+                <!-- Already have an account? <a id="login-button" >Log In here.</a> -->
+            </div>
+        </div>
     {% endif %}    
 {% endblock %}

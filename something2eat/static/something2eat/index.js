@@ -31,6 +31,23 @@ if (fridge_button) {
     
 }
 
+if (!fridge_button) {
+    const login_button = document.querySelector("#login-button") 
+    const login_view = document.querySelector("#login-view") 
+    const register_button= document.querySelector("#register-button") 
+    const register_view = document.querySelector("#register-view") 
+
+    register_button.addEventListener("click", () => {
+        login_view.style.display = "none";
+        register_view.style.display = "block";
+    })
+
+    login_button.addEventListener("click", () => {
+        login_view.style.display = "block";
+        register_view.style.display = "none";
+    })
+}
+
 function load_tap(tap) {
     if (tap == "#recommendations-view") {
         document.querySelector("#fridge-view").style.display = "none";
@@ -128,20 +145,49 @@ function removeIngredient(id) {
 }
 
 function load_recipie(id) {
-    let element = document.querySelector("#recipe-view")
+    let element = document.querySelector("#recipe-container");
     element.innerHTML = ""
     load_tap('#recipe-view')
     fetch(`/recipes/${id}`)
     .then(res => res.json())
     .then(recipe => {
+        console.log(recipe)
         element.innerHTML = `
         <div class="recipe d-flex justify-content-center">
             <img class="recipe-image" src="${recipe.image}">
             <div class="vl"></div>
             <div class="recipe-title"><h2>${recipe.title}</h2></div>
         </div>
+        <hr>
+        <div class="flex-column d-flex align-items-center">
+            ${recipe.summary}
+        </div>
+        <div class="flex-column d-flex align-items-center">
+            <h3>Ingredients:</h3>
+            <ul class="list-group list-group-flush">${split_ingredients(recipe.extendedIngredients)}</ul>
+        </div>
+        <div class="flex-column d-flex align-items-center">
+            <h3>Instructions:</h3>${recipe.instructions}
+        </div>
         `
 
     })
     .catch(err => console.log(res))
+}
+
+// function split_string(str) {
+//     str = str.split(`\n`);
+//     let list = ""
+//     str.forEach(step => {
+//         list += `<li class="list-group-item">${step}</li>`
+//     });
+//     return list;
+// }
+
+function split_ingredients(arr) {
+    let list = ""
+    arr.forEach(item => {
+        list += `<li class="list-group-item">${item.original}</li>`
+    });
+    return list;
 }
