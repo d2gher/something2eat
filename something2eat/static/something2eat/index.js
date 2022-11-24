@@ -90,7 +90,6 @@ function load_recipes() {
     .then(res => res.json())
     .then(recipes => {
         if (recipes == undefined) throw "No recipes found"
-        console.log(recipes)
         recipes.forEach(recipie => {
             const element = document.createElement("div");
             let used_ingredients = ""
@@ -151,7 +150,6 @@ function load_recipie(id) {
     fetch(`/recipes/${id}`)
     .then(res => res.json())
     .then(recipe => {
-        console.log(recipe)
         element.innerHTML = `
         <div class="recipe d-flex justify-content-center">
             <img class="recipe-image" src="${recipe.image}">
@@ -159,8 +157,8 @@ function load_recipie(id) {
             <div class="recipe-title"><h2>${recipe.title}</h2></div>
         </div>
         <hr>
-        <div class="flex-column d-flex align-items-center">
-            ${recipe.summary}
+        <div class="summery">
+            ${recipe.summary.slice(0, recipe.summary.lastIndexOf(". ") + 1)}
         </div>
         <div class="flex-column d-flex align-items-center">
             <h3>Ingredients:</h3>
@@ -174,15 +172,6 @@ function load_recipie(id) {
     })
     .catch(err => console.log(res))
 }
-
-// function split_string(str) {
-//     str = str.split(`\n`);
-//     let list = ""
-//     str.forEach(step => {
-//         list += `<li class="list-group-item">${step}</li>`
-//     });
-//     return list;
-// }
 
 function split_ingredients(arr) {
     let list = ""

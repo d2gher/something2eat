@@ -33,10 +33,10 @@
         <h2 class="text-center">Something to Eat</h2>
         <h6 class="text-center">Find easy and simple meals with ingredients you already have</h6>
         <hr>
-        <div class="d-flex justify-content-center align-items-center">
+        <div class="d-flex flex-column justify-content-center align-items-center">
             <!-- <a class="btn btn-sm btn-outline-primary" href="{% url 'login' %}">Login</a> -->
             {% if message %}
-                <div>{{ message }}</div>
+                <div class="alert alert-danger" role="alert">{{ message }}</div>
             {% endif %}    
             <div id="login-view">
                 <div class="form-container text-center ">

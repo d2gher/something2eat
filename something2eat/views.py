@@ -27,12 +27,12 @@ def login_view(request):
 
         # Check if the authentication was a failure 
         if user is None:
-            return render(request, "login.html", {"message": "Invalid username and/or password."})
+            return render(request, "index.html", {"message": "Invalid username and/or password."})
         # Login and redirect to index
         login(request, user)
         return HttpResponseRedirect(reverse("index"))
 
-    return render(request, "login.html")
+    return render(request, "index.html")
 
 def logout_view(request):
     logout(request)
@@ -48,22 +48,22 @@ def register_view(request):
 
         # Insure passwords match
         if password != confirmation: 
-            return render(request, "register.html", {"message": "Passwords don't match"})
+            return render(request, "index.html", {"message": "Passwords don't match"})
         # Make sure the password is long enough
         min_length  = 6
         if len(password) < min_length:
-           return render(request, "register.html", {"message": "Password must be 6 letters or longer"})   
+           return render(request, "index.html", {"message": "Password must be 6 letters or longer"})   
 
         # Attempt to register user 
         try: 
             user = User.objects.create_user(username, email, password)
             user.save()
         except IntegrityError as e: 
-           return render(request, "register.html", {"message": e.__cause__})
+           return render(request, "index.html", {"message": e.__cause__})
         login(request, user)
         return HttpResponseRedirect(reverse("index"))      
 
-    return render(request, 'register.html')
+    return render(request, 'index.html')
 
 @login_required
 @csrf_exempt
@@ -155,8 +155,9 @@ def recipies_view(request):
             for item in list:
                 CSV_ingredients += f'{item},'
 
-            recipies = requests.get(f'https://api.spoonacular.com/recipes/findByIngredients?ingredients={CSV_ingredients}&ranking=2&apiKey={os.environ["API_KEY"]}&ignorePantry=true')    
+            recipies = requests.get(f'https://api.spoonacular.com/recipes/findByIngredients?ingredients={CSV_ingredients}&ranking=2&apiKey={os.environ["API_KEY"]}&ignorePantry=true&number=18')    
             recipies = recipies.json()
+            recipies.sort(key= lambda x: x["likes"], reverse=True)
             cache.set("recipies-%s" % user.id, recipies)
         except:
             return JsonResponse({"error": "couldn't reach the API"}, status=404)    
@@ -168,8 +169,7 @@ def recipie_view(request, id):
     recipie = cache.get("recipie-%s" % id)
 
     if recipie is None: 
-        try: 
-            print(f'https://api.spoonacular.com/recipes/{id}/information&apiKey={os.environ["API_KEY"]}')
+        try:
             recipie = requests.get(f'https://api.spoonacular.com/recipes/{id}/information?apiKey={os.environ["API_KEY"]}')
             recipie = recipie.json()  
             cache.set("recipie-%s" % id, recipie) 
