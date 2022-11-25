@@ -31,10 +31,3 @@ I believe this app is distinct in that it provides a beneficial service that is 
 
 Move your terminal to the project's directory and run the command "python manage.py runserver". The app should statrt at: http://127.0.0.1:8000/
 
-## Addional information
-
-The app uses an .env file to hold secret key like the API key.
-To use the app create a .env file with the following content:
-
-- SECRET_KEY=***REMOVED***
-- API_KEY=***REMOVED***
