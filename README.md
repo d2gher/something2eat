@@ -36,5 +36,5 @@ Move your terminal to the project's directory and run the command "python manage
 The app uses an .env file to hold secret key like the API key.
 To use the app create a .env file with the following content:
 
-SECRET_KEY=***REMOVED***
-API_KEY=***REMOVED***
+- SECRET_KEY=***REMOVED***
+- API_KEY=***REMOVED***
